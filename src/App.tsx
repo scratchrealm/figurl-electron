@@ -1,24 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
+import { FunctionComponent, useMemo, useRef } from 'react';
 import './App.css';
+import FigInterface from './FigInterface';
+import urlFromUri from './urlFromUri';
+import useWindowDimensions from './useWindowDimensions';
 
-function App() {
+type Props = {
+  viewUri: string
+  dataUri: string
+}
+
+const App: FunctionComponent<Props> = ({viewUri, dataUri}) => {
+  const {width, height} = useWindowDimensions()
+  const iframeElement = useRef<HTMLIFrameElement | null>()
+  const parentOrigin = window.location.protocol + '//' + window.location.host
+  const viewUrlBase = urlFromUri(viewUri)
+  const viewUrl = viewUrlBase + '/index.html'
+  const figureId = 'test-id'
+  useMemo(() => (
+    new FigInterface({figureId, iframeElement, viewUrl, dataUri: dataUri})
+  ), [figureId, viewUrl, dataUri])
+  const src = useMemo(() => {
+      let ret = `${viewUrl}?parentOrigin=${parentOrigin}&figureId=${figureId}`
+      return ret
+  }, [parentOrigin, viewUrl])
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{position: 'absolute', width, height, overflow: 'hidden'}}>
+        <iframe
+            ref={e => {iframeElement.current = e}}
+            title="figure"
+            src={src}
+            width={width}
+            height={height}
+        />
     </div>
   );
 }

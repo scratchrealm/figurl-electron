@@ -1,7 +1,7 @@
 {
   "name": "figurl-electron",
   "description": "Open figurl views locally using electron",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "homepage": ".",
   "main": "build/electron/main.js",
@@ -14,7 +14,7 @@
       "buildResources": "assets"
     },
     "snap": {
-      "confinement": "classic"
+      "confinement": "devmode"
     }
   },
   "dependencies": {
@@ -48,6 +48,7 @@
     "eject": "react-scripts eject",
     "postinstall": "electron-builder install-app-deps",
     "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron . -d sha1://3f1cf876ffba7707c2fe6f9aad1a65e46523fac8 -v gs://figurl/spikesortingview-8\"",
+    "electron:dev-pubsub": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron . --pubsub\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder"
   },
   "eslintConfig": {

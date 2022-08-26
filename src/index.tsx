@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import PubsubServer from './PubsubServer';
 
 const queryParams = parseQuery(window.location.search)
 if (queryParams.label) document.title = queryParams.label
@@ -12,7 +13,13 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <App viewUri={queryParams["v"]} dataUri={queryParams["d"]} />
+    {
+      !queryParams["pubsub"] ? (
+        <App viewUri={queryParams["v"]} dataUri={queryParams["d"]} />
+      ) : (
+        <PubsubServer />
+      )
+    }
   </React.StrictMode>
 );
 

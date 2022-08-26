@@ -9,12 +9,14 @@ if (!((window as any).electronInterface)) {
     console.warn('Not using electron')
 }
 
-const electronInterface: {
-    handleFigurlRequest: (req: FigurlRequest, o: {dataUri: string}) => Promise<FigurlResponse | undefined>
+export const electronInterface: {
+    handleFigurlRequest: (req: FigurlRequest, o: {dataUri: string}) => Promise<FigurlResponse | undefined>,
+    createLocalPubsubServer: (port: number, callback: (x: any) => void) => any
 } = (window as any).electronInterface || {
     handleFigurlRequest: async (req: FigurlRequest, o: {dataUri: string}) => {
         return undefined
-    }
+    },
+    createLocalPubsubServer: (port: number, callback: (x: any) => void) => {}
 }
 
 class FigInterface {

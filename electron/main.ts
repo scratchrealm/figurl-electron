@@ -1,4 +1,4 @@
-import { app, BrowserWindow, contextBridge, globalShortcut } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as isDev from 'electron-is-dev';
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
@@ -10,6 +10,7 @@ type CommandLineArgs = {
     v?: string,
     dev?: boolean
     label?: string
+    pubsub?: boolean
 }
 
 const args: CommandLineArgs = parseCommandLineArgs()
@@ -23,10 +24,9 @@ function createWindow() {
             preload: __dirname + `/preload/src/preload.js`
         }
     })
-    win.removeMenu()
 
-    const queryString = `v=${args.v}&d=${args.d}&label=${args.label || "untitled"}`
-    console.log('-- queryString', queryString)
+    let queryString = `v=${args.v}&d=${args.d}&label=${args.label || "untitled"}`
+    if (args.pubsub) queryString += '&pubsub=1'
 
     if (isDev) {
         win.loadURL(`http://localhost:3000/index.html?${queryString}`);
@@ -36,15 +36,6 @@ function createWindow() {
     }
 
     win.on('closed', () => win = null);
-
-    globalShortcut.register('f5', function() {
-		console.log('f5 is pressed')
-		win && win.reload()
-	})
-	globalShortcut.register('CommandOrControl+R', function() {
-		console.log('CommandOrControl+R is pressed')
-		win && win.reload()
-	})
 
     if (args.dev) {
         win.webContents.openDevTools()
@@ -104,6 +95,9 @@ function parseCommandLineArgs() {
             else if (x[i] === '--label') {
                 ret.label = x[i + 1]
                 i ++
+            }
+            else if (x[i] === '--pubsub') {
+                ret.pubsub = true
             }
         }
         i ++

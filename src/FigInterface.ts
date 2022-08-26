@@ -2,7 +2,7 @@ import { MutableRefObject } from 'react';
 import './App.css';
 import deserializeReturnValue from './deserializeReturnValue';
 import { FigurlRequest, FigurlResponse } from './viewInterface/FigurlRequestTypes';
-import { MessageToChild } from './viewInterface/MessageToChildTypes';
+import { isTaskJobStatus, TaskJobStatus, MessageToChild } from './viewInterface/MessageToChildTypes';
 import { isMessageToParent } from './viewInterface/MessageToParentTypes';
 
 if (!((window as any).electronInterface)) {
@@ -11,11 +11,13 @@ if (!((window as any).electronInterface)) {
 
 export const electronInterface: {
     handleFigurlRequest: (req: FigurlRequest, o: {dataUri: string}) => Promise<FigurlResponse | undefined>,
+    onTaskStatusUpdate: (callback: (a: {taskName: string, taskJobId: string, status: string, errorMessage?: string}) => void) => void,
     createLocalPubsubServer: (port: number, callback: (x: any) => void) => any
 } = (window as any).electronInterface || {
     handleFigurlRequest: async (req: FigurlRequest, o: {dataUri: string}) => {
         return undefined
     },
+    onTaskStatusUpdate: (callback: (a: {taskName: string, taskJobId: string, status: string, errorMessage?: string}) => void) => {},
     createLocalPubsubServer: (port: number, callback: (x: any) => void) => {}
 }
 
@@ -26,9 +28,14 @@ class FigInterface {
         viewUrl: string,
         dataUri: string
     }) {
-        // ipcRenderer.on('mainprocess-message-to-child', (event, msg) => {
-        //     this._sendMessageToChild(msg)
-        // })
+        electronInterface.onTaskStatusUpdate(({taskName, taskJobId, status, errorMessage}) => {
+            this._sendMessageToChild({
+                type: 'taskStatusUpdate',
+                taskJobId,
+                status: status as TaskJobStatus,
+                errorMessage // for status=error
+            })
+        })
         window.addEventListener('message', e => {
             const msg = e.data
             if (isMessageToParent(msg)) {

@@ -54,7 +54,7 @@ class LocalPubsubChannel {
                 break
             }
             const elapsed = Date.now() - mm.timestamp
-            if (elapsed > 5000) {
+            if (elapsed > 15000) { // return messages from last 15 seconds
                 break // too old
                 // todo: remove old messages
             }
@@ -89,10 +89,18 @@ class LocalPubsubServer {
     #channels: {[name: string]: LocalPubsubChannel} = {}
     constructor(private o: {port: number, callback: (x: any) => void}) {
     }
+    port() {
+        return this.o.port
+    }
     async run() {
         const that = this
         const {port} = this.o
         const requestListener: http.RequestListener = function (req, res) {
+            if (that.#closed) return
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Request-Method', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+            res.setHeader('Access-Control-Allow-Headers', '*');
             if (req.method === 'POST') {
                 ;(async () => {
                     const reqMsg: RequestMessage = await readJsonFromReq(req)
@@ -119,19 +127,25 @@ class LocalPubsubServer {
                     }
                 })()
             }
+            else if (req.method === 'OPTIONS') {
+                console.warn('options request', req)
+                res.writeHead(200)
+                res.end()
+            }
             else {
                 throw Error(`Invalid request method: ${req.method}`)
             }
         }
-        await sleepMsec(1000) // wait for previous to close
+        await sleepMsec(1000) // wait for previous to close - not sure if needed
         if (this.#closed) return
-        this.#server = http.createServer(requestListener)
-        this.#server.listen(port, 'localhost', () => {
-            console.info(`Server is listening on port ${port}`)
+        const server = http.createServer(requestListener)
+        this.#server = server
+        await new Promise<void>((resolve, reject) => {
+            server.listen(port, 'localhost', () => {
+                resolve()
+            })
         })
-        while (!this.#closed) {
-            await sleepMsec(200)
-        }
+        console.info(`Server is listening on port ${port}`)
     }
     stop() {
         if (this.#server) {

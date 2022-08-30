@@ -3,23 +3,24 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import PubsubServer from './PubsubServer';
+import QueryParameters from '../electron/preload/src/QueryParameters';
 
-const queryParams = parseQuery(window.location.search)
-if (queryParams.label) document.title = queryParams.label
+const qp = parseQuery(window.location.search)
+if (qp.label) document.title = qp.label
+
+const queryParameters: QueryParameters = {
+  viewUri: qp.viewUri,
+  dataUri: qp.dataUri,
+  label: qp.label || 'no-label',
+  listenPort: qp.listenPort ? parseInt(qp.listenPort) : undefined
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    {
-      !queryParams["pubsub"] ? (
-        <App viewUri={queryParams["v"]} dataUri={queryParams["d"]} />
-      ) : (
-        <PubsubServer />
-      )
-    }
+    <App queryParameters={queryParameters} />
   </React.StrictMode>
 );
 

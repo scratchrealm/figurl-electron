@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as isDev from 'electron-is-dev';
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
+import QueryParameters from './preload/src/QueryParameters';
 
 let win: BrowserWindow | null = null;
 
@@ -10,7 +11,7 @@ type CommandLineArgs = {
     v?: string,
     dev?: boolean
     label?: string
-    pubsub?: boolean
+    listenPort?: number
 }
 
 const args: CommandLineArgs = parseCommandLineArgs()
@@ -25,8 +26,18 @@ function createWindow() {
         }
     })
 
-    let queryString = `v=${args.v}&d=${args.d}&label=${args.label || "untitled"}`
-    if (args.pubsub) queryString += '&pubsub=1'
+    const queryParameters: QueryParameters = {
+        viewUri: args.v,
+        dataUri: args.d,
+        label: args.label || 'untitled',
+        listenPort: args.listenPort
+    }
+
+    let queryString: string = ''
+    for (let k in queryParameters) {
+        const a = `${k}=${(queryParameters as any)[k]}`
+        queryString = queryString === '' ? a : `${queryString}&${a}`
+    }
 
     if (isDev) {
         win.loadURL(`http://localhost:3000/index.html?${queryString}`);
@@ -96,8 +107,9 @@ function parseCommandLineArgs() {
                 ret.label = x[i + 1]
                 i ++
             }
-            else if (x[i] === '--pubsub') {
-                ret.pubsub = true
+            else if (x[i] === '--listenPort') {
+                ret.listenPort = parseInt(x[i + 1])
+                i ++
             }
         }
         i ++

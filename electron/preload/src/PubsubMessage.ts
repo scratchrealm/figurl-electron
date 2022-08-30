@@ -24,7 +24,8 @@ export type PubsubMessage = {
     taskType: TaskType
     taskName: string
     taskInput: any
-    taskJobId: Sha1Hash
+    taskJobId: Sha1Hash,
+    backendId?: string
 } | {
     type: 'feedMessagesAppended'
     projectId: string
@@ -45,7 +46,8 @@ export const isPubsubMessage = (x: any): x is PubsubMessage => (
         taskType: isTaskType,
         taskName: isString,
         taskInput: () => (true),
-        taskJobId: isSha1Hash
+        taskJobId: isSha1Hash,
+        backendId: optional(isString)
     }) ||
     validateObject(x, {
         type: isEqualTo('feedMessagesAppended'),

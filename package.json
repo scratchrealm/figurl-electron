@@ -1,7 +1,7 @@
 {
   "name": "figurl-electron",
   "description": "Open figurl views locally using electron",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "homepage": ".",
   "main": "build/electron/main.js",
